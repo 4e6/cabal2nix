@@ -104,6 +104,7 @@ library
     , text
     , transformers
     , yaml
+    , utf8-string
   exposed-modules:
       Cabal2nix
       Distribution.Nixpkgs.Fetch
@@ -121,6 +122,7 @@ library
       Distribution.Nixpkgs.Haskell.Hackage
       Distribution.Nixpkgs.Haskell.OrphanInstances
       Distribution.Nixpkgs.Haskell.PackageSourceSpec
+      HackageGit
   other-modules:
       Paths_cabal2nix
   default-language: Haskell2010
@@ -152,6 +154,7 @@ executable cabal2nix
     , text
     , transformers
     , yaml
+    , utf8-string
     , cabal2nix
   other-modules:
       Paths_cabal2nix
@@ -184,6 +187,7 @@ executable hackage2nix
     , text
     , transformers
     , yaml
+    , utf8-string
     , cabal2nix
     , monad-par
     , monad-par-extras
@@ -192,7 +196,45 @@ executable hackage2nix
     , utf8-string
   other-modules:
       Paths_cabal2nix
-      HackageGit
+  default-language: Haskell2010
+
+executable stackage2nix
+  main-is: Main.hs
+  hs-source-dirs:
+      stackage2nix
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , ansi-wl-pprint
+    , base < 5
+    , bytestring
+    , Cabal > 1.24
+    , containers
+    , deepseq >= 1.4
+    , directory
+    , distribution-nixpkgs
+    , filepath
+    , hackage-db
+    , language-nix
+    , lens
+    , optparse-applicative
+    , pretty >= 1.1.2
+    , process
+    , SHA
+    , split
+    , text
+    , transformers
+    , yaml
+    , utf8-string
+    , cabal2nix
+    , monad-par
+    , monad-par-extras
+    , mtl
+    , time
+    , utf8-string
+    , stackage-curator
+  other-modules:
+      Paths_cabal2nix
   default-language: Haskell2010
 
 test-suite doctests
@@ -223,5 +265,6 @@ test-suite doctests
     , text
     , transformers
     , yaml
+    , utf8-string
     , doctest
   default-language: Haskell2010

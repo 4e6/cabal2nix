@@ -50,7 +50,14 @@ readPackage dirPrefix (PackageIdentifier name version) = do
   cabal <- case parsePackageDescription (decodeUTF8 buf) of
              ParseOk _ a  -> return a
              ParseFailed err -> fail (cabalFile ++ ": " ++ show err)
-  return (cabal, printSHA256 (digest (digestByName "sha256") buf))
+  let
+    hash = printSHA256 (digest (digestByName "sha256") buf)
+    pkg = cabal
+      { packageDescription = (packageDescription cabal)
+        { customFieldsPD = ("X-Cabal-File-Hash", hash) : customFieldsPD (packageDescription cabal)
+        }
+      }
+  return (pkg, hash)
 
 declareLenses [d|
   data Meta = Meta { hashes :: Map String String
