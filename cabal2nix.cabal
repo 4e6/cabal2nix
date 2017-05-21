@@ -218,15 +218,15 @@ executable stackage2nix
     , containers
     , deepseq >= 1.4
     , directory
-    , distribution-nixpkgs
+    , distribution-nixpkgs >= 1.1
     , filepath
     , hackage-db
+    , hopenssl >= 2
     , language-nix
     , lens
     , optparse-applicative
     , pretty >= 1.1.2
     , process
-    , SHA
     , split
     , text
     , transformers
