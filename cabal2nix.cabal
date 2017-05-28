@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.17.0.
+-- This file has been generated from package.yaml by hpack version 0.17.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -101,9 +101,11 @@ library
     , pretty >= 1.1.2
     , process
     , split
+    , stackage-curator
     , text
     , transformers
     , yaml
+    , unordered-containers
     , utf8-string
   exposed-modules:
       Cabal2nix
@@ -119,10 +121,13 @@ library
       Distribution.Nixpkgs.Haskell.FromCabal.Name
       Distribution.Nixpkgs.Haskell.FromCabal.Normalize
       Distribution.Nixpkgs.Haskell.FromCabal.PostProcess
+      Distribution.Nixpkgs.Haskell.FromStack
+      Distribution.Nixpkgs.Haskell.FromStack.Package
       Distribution.Nixpkgs.Haskell.Hackage
       Distribution.Nixpkgs.Haskell.OrphanInstances
       Distribution.Nixpkgs.Haskell.PackageSourceSpec
       HackageGit
+      Stackage2nix
   other-modules:
       Paths_cabal2nix
   default-language: Haskell2010
@@ -151,9 +156,11 @@ executable cabal2nix
     , pretty >= 1.1.2
     , process
     , split
+    , stackage-curator
     , text
     , transformers
     , yaml
+    , unordered-containers
     , utf8-string
     , cabal2nix
   other-modules:
@@ -184,9 +191,11 @@ executable hackage2nix
     , pretty >= 1.1.2
     , process
     , split
+    , stackage-curator
     , text
     , transformers
     , yaml
+    , unordered-containers
     , utf8-string
     , cabal2nix
     , monad-par
@@ -222,9 +231,11 @@ executable stackage2nix
     , pretty >= 1.1.2
     , process
     , split
+    , stackage-curator
     , text
     , transformers
     , yaml
+    , unordered-containers
     , utf8-string
     , cabal2nix
     , monad-par
@@ -263,9 +274,11 @@ test-suite doctests
     , pretty >= 1.1.2
     , process
     , split
+    , stackage-curator
     , text
     , transformers
     , yaml
+    , unordered-containers
     , utf8-string
     , doctest
   default-language: Haskell2010
