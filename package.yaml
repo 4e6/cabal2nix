@@ -98,9 +98,11 @@ dependencies:
   - pretty >= 1.1.2
   - process
   - split
+  - stackage-curator
   - text
   - transformers
   - yaml
+  - unordered-containers
   - utf8-string
 
 library:
@@ -129,10 +131,13 @@ library:
     - Distribution.Nixpkgs.Haskell.FromCabal.Name
     - Distribution.Nixpkgs.Haskell.FromCabal.Normalize
     - Distribution.Nixpkgs.Haskell.FromCabal.PostProcess
+    - Distribution.Nixpkgs.Haskell.FromStack
+    - Distribution.Nixpkgs.Haskell.FromStack.Package
     - Distribution.Nixpkgs.Haskell.Hackage
     - Distribution.Nixpkgs.Haskell.OrphanInstances
     - Distribution.Nixpkgs.Haskell.PackageSourceSpec
     - HackageGit
+    - Stackage2nix
 
 executables:
   cabal2nix:
