@@ -132,7 +132,7 @@ main = do
       let pkgId :: PackageIdentifier
           pkgId = PackageIdentifier name v
 
-      (descr, cabalSHA256) <- readPackage hackageRepository pkgId
+      (descr, cabalSHA256) <- readPackageFile hackageRepository pkgId
       meta <- readPackageMeta hackageRepository pkgId
 
       let isInDefaultPackageSet :: Bool

@@ -8,10 +8,12 @@ import Control.Monad
 import Data.Aeson
 import Data.ByteString.Char8 ( ByteString )
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
 import Data.Map as Map
 import Data.Set as Set
 import Data.String
 import Data.String.UTF8 ( toString, fromRep )
+import Data.Text as T
 import Distribution.Nixpkgs.Hashes
 import Distribution.Nixpkgs.Haskell.OrphanInstances ( )
 import Distribution.Package
@@ -22,6 +24,8 @@ import Distribution.Version
 import OpenSSL.Digest ( digest, digestByName )
 import System.Directory
 import System.FilePath
+import Git.Libgit2 as Libgit2
+import Git
 
 type Hackage = Map PackageName (Set Version)
 
@@ -36,28 +40,50 @@ readHackage path = getSubDirs path >>= foldM discoverPackageVersions mempty
 getSubDirs :: FilePath -> IO [FilePath]
 getSubDirs path = do
   let isDirectory p = doesDirectoryExist (path </> p)
-  getDirectoryContents path >>= filterM isDirectory . Prelude.filter (\x -> head x /= '.')
+  getDirectoryContents path >>= filterM isDirectory . Prelude.filter (\x -> Prelude.head x /= '.')
 
 decodeUTF8 :: ByteString -> String
 decodeUTF8 = toString . fromRep
 
 type SHA256Hash = String
+type SHA1Hash = T.Text
 
-readPackage :: FilePath -> PackageIdentifier -> IO (GenericPackageDescription, SHA256Hash)
-readPackage dirPrefix (PackageIdentifier name version) = do
-  let cabalFile = dirPrefix </> unPackageName name </> display version </> unPackageName name <.> "cabal"
+readPackageByHash :: FilePath -> SHA1Hash -> IO (GenericPackageDescription, SHA256Hash)
+readPackageByHash repoDir sha1Hash = do
+  let repoOpts = defaultRepositoryOptions { repoPath = repoDir }
+  repo <- openLgRepository repoOpts
+  buf <- runLgRepository repo $ do
+    BlobObj (Blob _ contents) <- lookupObject =<< parseOid sha1Hash
+    case contents of
+      BlobString bs -> return bs
+      BlobStringLazy lbs -> return $ LBS.toStrict lbs
+      _ -> fail $ "Git SHA1 " ++ show sha1Hash ++ ": expected single Blob"
+  cabal <- case parsePackageDescription (decodeUTF8 buf) of
+    ParseOk _ a     -> return a
+    ParseFailed err -> fail ("Git SHA1 " ++ show sha1Hash ++ ": " ++ show err)
+  let
+    hash = printSHA256 (digest (digestByName "sha256") buf)
+    pkg  = setCabalFileHash hash cabal
+  return (pkg, hash)
+
+readPackageFile :: FilePath -> PackageIdentifier -> IO (GenericPackageDescription, SHA256Hash)
+readPackageFile repoDir (PackageIdentifier name version) = do
+  let cabalFile = repoDir </> unPackageName name </> display version </> unPackageName name <.> "cabal"
   buf <- BS.readFile cabalFile
   cabal <- case parseGenericPackageDescription (decodeUTF8 buf) of
              ParseOk _ a  -> return a
              ParseFailed err -> fail (cabalFile ++ ": " ++ show err)
   let
     hash = printSHA256 (digest (digestByName "sha256") buf)
-    pkg = cabal
-      { packageDescription = (packageDescription cabal)
-        { customFieldsPD = ("X-Cabal-File-Hash", hash) : customFieldsPD (packageDescription cabal)
-        }
-      }
+    pkg  = setCabalFileHash hash cabal
   return (pkg, hash)
+
+setCabalFileHash :: SHA256Hash -> GenericPackageDescription -> GenericPackageDescription
+setCabalFileHash hash cabal = cabal
+  { packageDescription = (packageDescription cabal)
+    { customFieldsPD = ("X-Cabal-File-Hash", hash) : customFieldsPD (packageDescription cabal)
+    }
+  }
 
 declareLenses [d|
   data Meta = Meta { hashes :: Map String String

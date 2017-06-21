@@ -75,9 +75,11 @@ loadBuildPlan = Yaml.decodeFileEither >=> \case
   Left err -> fail $ "Failed to parse stackage build plan: " ++ show err
   Right bp -> return bp
 
-loadPackage :: FilePath -> PackageIdentifier -> IO Package
-loadPackage allCabalHashesPath pkgId = do
-  (pkgDesc, _) <- readPackage allCabalHashesPath pkgId
+loadPackage :: FilePath -> Maybe SHA1Hash -> PackageIdentifier -> IO Package
+loadPackage allCabalHashesPath mSha1Hash pkgId = do
+  (pkgDesc, _) <- case mSha1Hash of
+    Just sha1 -> readPackageByHash allCabalHashesPath sha1
+    Nothing   -> readPackageFile allCabalHashesPath pkgId
   meta <- readPackageMeta allCabalHashesPath pkgId
   let
     tarballSHA256 = fromMaybe
