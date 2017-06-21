@@ -93,6 +93,8 @@ library
     , directory
     , distribution-nixpkgs >= 1.1
     , filepath
+    , gitlib
+    , gitlib-libgit2
     , hackage-db
     , hopenssl >= 2
     , language-nix
@@ -148,6 +150,8 @@ executable cabal2nix
     , directory
     , distribution-nixpkgs >= 1.1
     , filepath
+    , gitlib
+    , gitlib-libgit2
     , hackage-db
     , hopenssl >= 2
     , language-nix
@@ -183,6 +187,8 @@ executable hackage2nix
     , directory
     , distribution-nixpkgs >= 1.1
     , filepath
+    , gitlib
+    , gitlib-libgit2
     , hackage-db
     , hopenssl >= 2
     , language-nix
@@ -223,6 +229,8 @@ executable stackage2nix
     , directory
     , distribution-nixpkgs >= 1.1
     , filepath
+    , gitlib
+    , gitlib-libgit2
     , hackage-db
     , hopenssl >= 2
     , language-nix
@@ -266,6 +274,8 @@ test-suite doctests
     , directory
     , distribution-nixpkgs >= 1.1
     , filepath
+    , gitlib
+    , gitlib-libgit2
     , hackage-db
     , hopenssl >= 2
     , language-nix

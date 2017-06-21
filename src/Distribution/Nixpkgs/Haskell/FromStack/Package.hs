@@ -24,9 +24,9 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 data Node = Node
-  { nodeDerivation   :: !Derivation
-  , nodeTestDepends  :: !(Set.Set String)
-  , nodeOtherDepends :: !(Set.Set String) }
+  { nodeDerivation   :: Derivation
+  , nodeTestDepends  :: Set.Set String
+  , nodeOtherDepends :: Set.Set String }
 
 mkNode :: Derivation -> Node
 mkNode nodeDerivation = Node{..}

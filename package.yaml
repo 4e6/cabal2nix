@@ -84,6 +84,8 @@ dependencies:
   - directory
   - distribution-nixpkgs >= 1.1
   - filepath
+  - gitlib
+  - gitlib-libgit2
   - hackage-db
   - hopenssl >= 2
   - language-nix

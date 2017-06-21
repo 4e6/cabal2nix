@@ -4,7 +4,8 @@ module Distribution.Nixpkgs.Haskell.FromStack where
 
 import Control.Lens
 import Stackage.BuildPlan
-import Stackage.Types (PackageConstraints(..), DepInfo(..), SimpleDesc(..), TestState(..))
+import Stackage.Types (CabalFileInfo(..),PackageConstraints(..), DepInfo(..), SimpleDesc(..), TestState(..))
+import HackageGit
 import Distribution.Compiler (CompilerInfo(..))
 import Distribution.System (Platform(..))
 import Distribution.Package (PackageName(..), PackageIdentifier(..), Dependency(..))
@@ -20,7 +21,7 @@ import qualified Data.Set as Set
 data PackageSetConfig = PackageSetConfig
   { haskellResolver :: HaskellResolver
   , nixpkgsResolver :: NixpkgsResolver
-  , packageLoader   :: PackageIdentifier -> IO Package
+  , packageLoader   :: Maybe SHA1Hash -> PackageIdentifier -> IO Package
   , targetPlatform  :: Platform
   , targetCompiler  :: CompilerInfo
   }
@@ -35,7 +36,10 @@ planDependencies = map makeDependency . Map.toList . sdPackages . ppDesc
 
 buildNodeM :: PackageSetConfig -> PackageName -> PackagePlan -> IO Node
 buildNodeM conf name plan = do
-  pkg <- packageLoader conf $ PackageIdentifier name (ppVersion plan)
+  let
+    cabalHashes = maybe mempty cfiHashes $ ppCabalFileInfo plan
+    mGitSha1 = Map.lookup "GitSHA1" cabalHashes
+  pkg <- packageLoader conf mGitSha1 $ PackageIdentifier name (ppVersion plan)
   pure $ buildNode conf plan pkg
 
 buildNode :: PackageSetConfig -> PackagePlan -> Package -> Node
