@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Distribution.Nixpkgs.Haskell.FromStack.Package where
 
@@ -24,24 +25,26 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 data Node = Node
-  { nodeDerivation   :: Derivation
-  , nodeTestDepends  :: Set.Set String
-  , nodeOtherDepends :: Set.Set String }
+  { _nodeDerivation   :: Derivation
+  , _nodeTestDepends  :: Set.Set String
+  , _nodeOtherDepends :: Set.Set String }
+
+makeLenses ''Node
 
 mkNode :: Derivation -> Node
-mkNode nodeDerivation = Node{..}
+mkNode _nodeDerivation = Node{..}
   where
     haskellDependencies s = Set.map (view (localName . ident))
       . Set.filter isFromHackage
-      $ view (s . (haskell <> tool)) nodeDerivation
-    nodeTestDepends = haskellDependencies testDepends
-    nodeOtherDepends = haskellDependencies (executableDepends <> libraryDepends)
+      $ view (s . (haskell <> tool)) _nodeDerivation
+    _nodeTestDepends = haskellDependencies testDepends
+    _nodeOtherDepends = haskellDependencies (executableDepends <> libraryDepends)
 
 nodeName :: Node -> String
-nodeName = unPackageName . pkgName . view pkgid . nodeDerivation
+nodeName = unPackageName . pkgName . view (nodeDerivation . pkgid)
 
 nodeDepends :: Node -> Set.Set String
-nodeDepends = nodeTestDepends <> nodeOtherDepends
+nodeDepends = _nodeTestDepends <> _nodeOtherDepends
 
 findCycles :: [Node] -> [[Node]]
 findCycles nodes = mapMaybe cyclic $
@@ -57,10 +60,10 @@ breakCycle c = nodeName breaker : concatMap breakCycle (findCycles remaining)
   breaker = F.maximumBy (O.comparing rate) c
   remaining = map updateNode c
   updateNode n
-    | nodeName n == nodeName breaker = n { nodeTestDepends = mempty }
+    | nodeName n == nodeName breaker = n & nodeTestDepends .~ mempty
     | otherwise = n
   names = Set.fromList $ map nodeName c
-  rate node = - Set.size (nodeOtherDepends node `Set.intersection` names)
+  rate node = - Set.size (view nodeOtherDepends node `Set.intersection` names)
 
 type FromVertex = Vertex -> (Node, String, [String])
 type FromKey = String -> Maybe Vertex
