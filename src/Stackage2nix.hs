@@ -45,6 +45,8 @@ import qualified Data.HashMap.Strict as HashMap
 data Options = Options
   { optBuildPlanFile :: FilePath
   , optAllCabalHashes :: FilePath
+  , optDoCheck :: Bool
+  , optDoHaddock :: Bool
   , optNixpkgsRepository :: FilePath
   , optNixpkgsMap :: Maybe FilePath
   , optOutPackages :: FilePath
@@ -55,6 +57,8 @@ options :: Parser Options
 options = Options
   <$> strArgument (metavar "PLAN" <> help "stackage build plan (YAML)")
   <*> strArgument (metavar "CABALFILES" <> help "path to checkout of all-cabal-hashes")
+  <*> switch (long "do-check" <> help "enable tests for Stackage packages")
+  <*> switch (long "do-haddock" <> help "enable haddock for Stackage packages")
   <*> strOption (long "nixpkgs" <> help "path to Nixpkgs repository" <> value "<nixpkgs>" <> showDefaultWith id <> metavar "PATH")
   <*> optional (strOption (long "package-map" <> help "path to a serialized nixpkgs package map" <> metavar "PATH"))
   <*> strOption (long "out-packages" <> help "name of the output file for the package set" <> value "packages.nix" <> metavar "PATH")
@@ -137,6 +141,8 @@ run Options{..} = do
       , targetCompiler = ghcCompilerInfo (siGhcVersion systemInfo)
       , nixpkgsResolver = resolve (Map.map (Set.map (over path ("pkgs":))) nixpkgs)
       , haskellResolver = buildPlanContainsDependency packageVersions
+      , enableCheck = optDoCheck
+      , enableHaddock = optDoHaddock
       }
   return (buildPlan, conf)
 
