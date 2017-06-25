@@ -3,17 +3,19 @@
 module Distribution.Nixpkgs.Haskell.FromStack where
 
 import Control.Lens
-import Stackage.BuildPlan
-import Stackage.Types (CabalFileInfo(..),PackageConstraints(..), DepInfo(..), SimpleDesc(..), TestState(..))
+import Data.Set.Lens
 import HackageGit
 import Distribution.Compiler (CompilerInfo(..))
 import Distribution.System (Platform(..))
 import Distribution.Package (PackageName(..), PackageIdentifier(..), Dependency(..))
-import Distribution.PackageDescription (GenericPackageDescription(..))
+import Distribution.PackageDescription
 import Distribution.Nixpkgs.Haskell.FromStack.Package
 import Distribution.Nixpkgs.Haskell.PackageSourceSpec
 import Distribution.Nixpkgs.Haskell.FromCabal
 import Distribution.Nixpkgs.Haskell.Derivation
+import Stackage.BuildPlan
+import Stackage.Types (CabalFileInfo(..),PackageConstraints(..), DepInfo(..), SimpleDesc(..), TestState(..))
+import qualified Distribution.Nixpkgs.Meta as Nix
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -24,6 +26,8 @@ data PackageSetConfig = PackageSetConfig
   , packageLoader   :: Maybe SHA1Hash -> PackageIdentifier -> IO Package
   , targetPlatform  :: Platform
   , targetCompiler  :: CompilerInfo
+  , enableCheck     :: Bool
+  , enableHaddock   :: Bool
   }
 
 removeTests :: GenericPackageDescription -> GenericPackageDescription
@@ -40,29 +44,49 @@ buildNodeM conf name plan = do
     cabalHashes = maybe mempty cfiHashes $ ppCabalFileInfo plan
     mGitSha1 = Map.lookup "GitSHA1" cabalHashes
   pkg <- packageLoader conf mGitSha1 $ PackageIdentifier name (ppVersion plan)
-  pure $ buildNode conf plan pkg
+  pure . mkNode $ fromPackage conf plan pkg
 
-buildNode :: PackageSetConfig -> PackagePlan -> Package -> Node
-buildNode conf plan pkg =
+fromPackage :: PackageSetConfig -> PackagePlan -> Package -> Derivation
+fromPackage conf plan pkg =
   let
     constraints = ppConstraints plan
-    testsEnabled = pcTests constraints == ExpectSuccess
-    haddocksEnabled
-       = pcHaddocks constraints == ExpectSuccess
-      && not (Set.null (sdModules (ppDesc plan)))
+    testsEnabled =
+      enableCheck conf &&
+      pcTests constraints == ExpectSuccess
+    haddocksEnabled =
+      enableHaddock conf &&
+      pcHaddocks constraints == ExpectSuccess &&
+      not (Set.null (sdModules (ppDesc plan)))
     configureTests
       | pcTests constraints == Don'tBuild = removeTests
       | otherwise = id
-    genericDrv = fromGenericPackageDescription
+    flags = Map.toList (pcFlagOverrides constraints)
+    (descr, missingDeps) = fromFinalizedPackageDescription
       (haskellResolver conf)
-      (nixpkgsResolver conf)
       (targetPlatform conf)
       (targetCompiler conf)
-      (Map.toList (pcFlagOverrides constraints))
+      flags
       (planDependencies plan)
       (configureTests (pkgCabal pkg))
-    drv = genericDrv
+    genericDrv = fromPackageDescription
+      (haskellResolver conf)
+      (nixpkgsResolver conf)
+      missingDeps
+      flags
+      descr
+    depName (Dependency name _) = name
+    testDeps = setOf
+      ( to testSuites . folded
+        . to testBuildInfo . to targetBuildDepends
+        . folded . to depName )
+    hasIntersection a b = not . null $ Set.intersection a b
+    brokenEnabled =
+      testsEnabled &&
+      not (null missingDeps) &&
+      setOf (folded . to depName) missingDeps `hasIntersection` testDeps descr
+  in
+    genericDrv
       & src .~ pkgSource pkg
       & doCheck .~ testsEnabled
       & runHaddock .~ haddocksEnabled
-  in mkNode drv
+      & metaSection . Nix.broken .~ brokenEnabled
