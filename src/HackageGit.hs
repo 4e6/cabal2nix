@@ -58,7 +58,7 @@ readPackageByHash repoDir sha1Hash = do
       BlobString bs -> return bs
       BlobStringLazy lbs -> return $ LBS.toStrict lbs
       _ -> fail $ "Git SHA1 " ++ show sha1Hash ++ ": expected single Blob"
-  cabal <- case parsePackageDescription (decodeUTF8 buf) of
+  cabal <- case parseGenericPackageDescription (decodeUTF8 buf) of
     ParseOk _ a     -> return a
     ParseFailed err -> fail ("Git SHA1 " ++ show sha1Hash ++ ": " ++ show err)
   let

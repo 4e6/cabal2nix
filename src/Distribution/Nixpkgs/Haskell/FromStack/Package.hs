@@ -11,7 +11,7 @@ import Data.Maybe
 import Data.Monoid
 import Data.Ord as O
 import Distribution.Text (display, disp)
-import Distribution.Package (PackageName(..), PackageIdentifier(..))
+import Distribution.Package (unPackageName, packageName)
 import Distribution.Nixpkgs.Haskell.BuildInfo
 import Distribution.Nixpkgs.Haskell.Derivation
 import Language.Nix.PrettyPrinting (onlyIf)
@@ -41,7 +41,7 @@ mkNode _nodeDerivation = Node{..}
     _nodeOtherDepends = haskellDependencies (executableDepends <> libraryDepends)
 
 nodeName :: Node -> String
-nodeName = unPackageName . pkgName . view (nodeDerivation . pkgid)
+nodeName = unPackageName . packageName . view (nodeDerivation . pkgid)
 
 nodeDepends :: Node -> Set.Set String
 nodeDepends = _nodeTestDepends <> _nodeOtherDepends
@@ -125,7 +125,7 @@ pPrintOutPackages drvs = vcat
 pPrintPackageOverride :: Derivation -> Doc
 pPrintPackageOverride drv =
   let
-    name = drv ^. pkgid . to pkgName
+    name = drv ^. pkgid . to packageName
     overrides = fsep
       [ disp bind <> semi
       | bind <- Set.toList $ view (dependencies . each <> extraFunctionArgs) drv

@@ -7,7 +7,7 @@ import Data.Set.Lens
 import HackageGit
 import Distribution.Compiler (CompilerInfo(..))
 import Distribution.System (Platform(..))
-import Distribution.Package (PackageName(..), PackageIdentifier(..), Dependency(..))
+import Distribution.Package (PackageName, PackageIdentifier(..), Dependency(..))
 import Distribution.PackageDescription
 import Distribution.Nixpkgs.Haskell.FromStack.Package
 import Distribution.Nixpkgs.Haskell.PackageSourceSpec

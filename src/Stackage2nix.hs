@@ -24,10 +24,9 @@ import Distribution.Nixpkgs.Haskell.FromStack
 import Distribution.Nixpkgs.Haskell.FromStack.Package
 import Distribution.Nixpkgs.Fetch
 import Distribution.Nixpkgs.PackageMap (readNixpkgPackageMap, resolve, PackageMap)
-import Distribution.Version (withinRange)
+import Distribution.Version (Version, withinRange)
 import Language.Haskell.Extension (Language(Haskell98, Haskell2010))
 import Language.Nix
-import Data.Version
 import HackageGit
 import Control.Lens
 import Data.Maybe

@@ -48,7 +48,7 @@ fromFinalizedPackageDescription haskellResolver arch compiler flags constraints 
     -- We have to call the Cabal finalizer several times with different resolver
     -- functions, and this convenience function makes our code shorter.
     finalize :: HaskellResolver -> Either [Dependency] (PackageDescription,FlagAssignment)
-    finalize resolver = finalizePD flags requestedComponents resolver arch compiler constraints (enableBenchmarks (enableTests genDesc))
+    finalize resolver = finalizePD flags requestedComponents resolver arch compiler constraints genDesc
     requestedComponents :: ComponentRequestedSpec
     requestedComponents = defaultComponentRequestedSpec
       { testsRequested      = True
