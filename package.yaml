@@ -90,8 +90,6 @@ dependencies:
   - directory
   - distribution-nixpkgs >= 1.1
   - filepath
-  - gitlib
-  - gitlib-libgit2
   - hackage-db
   - hopenssl >= 2
   - language-nix
@@ -100,12 +98,9 @@ dependencies:
   - pretty >= 1.1.2
   - process
   - split
-  - stackage-curator
   - text
   - transformers
   - yaml
-  - unordered-containers
-  - utf8-string
 
 library:
   source-dirs: src
@@ -133,13 +128,9 @@ library:
     - Distribution.Nixpkgs.Haskell.FromCabal.Name
     - Distribution.Nixpkgs.Haskell.FromCabal.Normalize
     - Distribution.Nixpkgs.Haskell.FromCabal.PostProcess
-    - Distribution.Nixpkgs.Haskell.FromStack
-    - Distribution.Nixpkgs.Haskell.FromStack.Package
     - Distribution.Nixpkgs.Haskell.Hackage
     - Distribution.Nixpkgs.Haskell.OrphanInstances
     - Distribution.Nixpkgs.Haskell.PackageSourceSpec
-    - HackageGit
-    - Stackage2nix
 
 executables:
   cabal2nix:
@@ -155,6 +146,7 @@ executables:
     source-dirs:        hackage2nix
     other-modules:
       - Paths_cabal2nix
+      - HackageGit
     dependencies:
       - cabal2nix
       - monad-par
@@ -162,25 +154,6 @@ executables:
       - mtl
       - time
       - utf8-string
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-
-  stackage2nix:
-    main:               Main.hs
-    source-dirs:        stackage2nix
-    other-modules:
-      - Paths_cabal2nix
-    dependencies:
-      - cabal2nix
-      - monad-par
-      - monad-par-extras
-      - mtl
-      - time
-      - unordered-containers
-      - utf8-string
-      - stackage-curator
     ghc-options:
       - -threaded
       - -rtsopts

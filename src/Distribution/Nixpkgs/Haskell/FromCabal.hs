@@ -3,9 +3,7 @@
 
 module Distribution.Nixpkgs.Haskell.FromCabal
   ( HaskellResolver, NixpkgsResolver
-  , fromGenericPackageDescription
-  , fromFinalizedPackageDescription
-  , fromPackageDescription
+  , fromGenericPackageDescription , fromFinalizedPackageDescription , fromPackageDescription
   ) where
 
 import Control.Lens
@@ -49,17 +47,20 @@ fromFinalizedPackageDescription haskellResolver arch compiler flags constraints 
     -- functions, and this convenience function makes our code shorter.
     finalize :: HaskellResolver -> Either [Dependency] (PackageDescription,FlagAssignment)
     finalize resolver = finalizePD flags requestedComponents resolver arch compiler constraints genDesc
+
     requestedComponents :: ComponentRequestedSpec
     requestedComponents = defaultComponentRequestedSpec
-      { testsRequested      = True
-      , benchmarksRequested = True
-      }
+                          { testsRequested      = True
+                          , benchmarksRequested = True
+                          }
+
     jailbrokenResolver :: HaskellResolver
     jailbrokenResolver (Dependency pkg _) = haskellResolver (Dependency pkg anyVersion)
+
   in case finalize jailbrokenResolver of
     Left m -> case finalize (const True) of
-      Left _      -> error ("Cabal cannot finalize " ++ display (packageId genDesc))
-      Right (d,_) -> (d,m)
+                Left _      -> error ("Cabal cannot finalize " ++ display (packageId genDesc))
+                Right (d,_) -> (d,m)
     Right (d,_)  -> (d,[])
 
 fromPackageDescription :: HaskellResolver -> NixpkgsResolver -> [Dependency] -> FlagAssignment -> PackageDescription -> Derivation
